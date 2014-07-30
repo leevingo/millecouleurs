@@ -1,0 +1,6 @@
+name = Commerce Extra - DS Fields
+description = Module that provides extra display suite fields for commerce
+package = Leevingo
+dependencies[] = commerce
+dependencies[] = leevingo
+core = 7.x

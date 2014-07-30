@@ -1,0 +1,7 @@
+name = Commerce Extra - Merge orders
+description = Module to merge commerce orders.
+package = Leevingo
+dependencies[] = commerce
+dependencies[] = leevingo
+
+core = 7.x

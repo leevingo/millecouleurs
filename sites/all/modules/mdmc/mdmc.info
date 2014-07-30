@@ -1,0 +1,7 @@
+name = Monde Des Milles Couleurs
+description = Module with adaptations for Monde Des Milles Couleurs
+core = 7.x
+package = "MDMC"
+files [] = mdmc.module
+
+
