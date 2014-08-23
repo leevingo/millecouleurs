@@ -116,7 +116,6 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
     // Invoice supplier.
     $supplier_tid = $invoice->supplier_tid;
     // Invoice generation method
-    dsm($supplier_tid, 'supplier');
     $method = variable_get('commerce_invoice_number_method', COMMERCE_INVOICE_METHOD_YEAR);
     // Get last invoice created
     if ($method == COMMERCE_INVOICE_METHOD_SUPPLIER) {
@@ -126,24 +125,18 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
           ->orderBy('invoice_id', 'DESC')
           ->range(0, 1)
           ->execute();
-      
       if ($record = $result->fetchAssoc()) {
-        dsm($record, 'record');
         $last_number_for_supplier = $record['invoice_number'];
         $new_number_for_supplier = $last_number_for_supplier + 1;
         $return = str_replace('[invoice_number]', $new_number_for_supplier, $method);
-        dsm($return, 'return');
         return $return;
       }
       else {
         // First invoice being generated
         $new_number_for_supplier = 1;
         $return = str_replace('[invoice_number]', $new_number_for_supplier, $method);
-        dsm($return, 'return');
         return $return;
-      }
-      
-      
+      }    
     }
     else {
       $result = db_select('commerce_invoice', 'i')
