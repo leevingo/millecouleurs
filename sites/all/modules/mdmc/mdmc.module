@@ -5,7 +5,6 @@
  * Module with adaptations for Monde Des Milles Couleurs
  */
 
-
 /**
  * Implements hook_form_alter()
  */

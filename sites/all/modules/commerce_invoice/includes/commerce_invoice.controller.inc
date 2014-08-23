@@ -54,7 +54,7 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
             // Inserting new invoice
             if (empty($invoice->invoice_id)) {
                 $invoice->created = REQUEST_TIME;
-                $invoice->invoice_number = $this->generate_invoice_id();
+                $invoice->invoice_number = $this->generate_invoice_id($invoice);
 
                 $this->invoke('presave', $invoice);
                 $invoice = $this->_save($invoice, $transaction);
@@ -111,74 +111,104 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
    * @return
    *   The generated invoice id
    */
-  protected function generate_invoice_id() {
+    protected function generate_invoice_id($invoice) {
     // TODO: there is probably a better way to do this
+    // Invoice supplier.
+    $supplier_tid = $invoice->supplier_tid;
     // Invoice generation method
+    dsm($supplier_tid, 'supplier');
     $method = variable_get('commerce_invoice_number_method', COMMERCE_INVOICE_METHOD_YEAR);
     // Get last invoice created
-    $result = db_select('commerce_invoice', 'i')
-      ->fields('i')
-      ->orderBy('created', 'DESC')
-      ->range(0, 1)
-      ->execute();
-    if ($record = $result->fetchAssoc()) {
-      $last_number = $record['invoice_number'];
-      switch($method) {
-        case COMMERCE_INVOICE_METHOD_INFINITE:
-          $last_id = $record['invoice_id'];
-          $id = $last_id + 1;
-          $return = str_replace('[invoice_id]', $id, $method);
-          break;
-        case COMMERCE_INVOICE_METHOD_YEAR:
-          // Are we in the same year as the last invoice
-          $dash_pos = strpos($last_number, '-');
-          $last_year = substr($last_number, 0, $dash_pos);
-          if ($last_year == date('Y')) {
-            // Get last invoice id
-            $last_id = strstr($last_number, '-');
-            $last_id = str_replace('-', '', $last_id);
-            // Increment invoice id
+    if ($method == COMMERCE_INVOICE_METHOD_SUPPLIER) {
+      $result = db_select('commerce_invoice', 'i')
+          ->fields('i')
+          ->condition('i.supplier_tid', $supplier_tid)
+          ->orderBy('invoice_id', 'DESC')
+          ->range(0, 1)
+          ->execute();
+      
+      if ($record = $result->fetchAssoc()) {
+        dsm($record, 'record');
+        $last_number_for_supplier = $record['invoice_number'];
+        $new_number_for_supplier = $last_number_for_supplier + 1;
+        $return = str_replace('[invoice_number]', $new_number_for_supplier, $method);
+        dsm($return, 'return');
+        return $return;
+      }
+      else {
+        // First invoice being generated
+        $new_number_for_supplier = 1;
+        $return = str_replace('[invoice_number]', $new_number_for_supplier, $method);
+        dsm($return, 'return');
+        return $return;
+      }
+      
+      
+    }
+    else {
+      $result = db_select('commerce_invoice', 'i')
+          ->fields('i')
+          ->orderBy('created', 'DESC')
+          ->range(0, 1)
+          ->execute();
+      if ($record = $result->fetchAssoc()) {
+        $last_number = $record['invoice_number'];
+        switch ($method) {
+          case COMMERCE_INVOICE_METHOD_INFINITE:
+            $last_id = $record['invoice_id'];
             $id = $last_id + 1;
-            $return = $last_year.'-'.$id;
-          }
-          else {
-            // Reset invoice id to 1
-            $return = date('Y').'-1';
-          }
-          break;
-        case COMMERCE_INVOICE_METHOD_MONTH:
-          $parts = explode('-', $last_number);
-          $last_year = $parts[0];
-          $last_month = $parts[1];
-          $last_id = $parts[2];
-          $year = date('Y');
-          $month = date('m');
-          if ($last_year == $year) {
-            if ($last_month == $month) {
+            $return = str_replace('[invoice_id]', $id, $method);
+            break;
+          case COMMERCE_INVOICE_METHOD_YEAR:
+            // Are we in the same year as the last invoice
+            $dash_pos = strpos($last_number, '-');
+            $last_year = substr($last_number, 0, $dash_pos);
+            if ($last_year == date('Y')) {
+              // Get last invoice id
+              $last_id = strstr($last_number, '-');
+              $last_id = str_replace('-', '', $last_id);
+              // Increment invoice id
               $id = $last_id + 1;
+              $return = $last_year . '-' . $id;
+            }
+            else {
+              // Reset invoice id to 1
+              $return = date('Y') . '-1';
+            }
+            break;
+          case COMMERCE_INVOICE_METHOD_MONTH:
+            $parts = explode('-', $last_number);
+            $last_year = $parts[0];
+            $last_month = $parts[1];
+            $last_id = $parts[2];
+            $year = date('Y');
+            $month = date('m');
+            if ($last_year == $year) {
+              if ($last_month == $month) {
+                $id = $last_id + 1;
+              }
+              else {
+                $id = 1;
+              }
             }
             else {
               $id = 1;
             }
-          }
-          else {
-            $id = 1;
-          }
-          $return = date('Y').'-'.date('m').$id;
-          break;
+            $return = date('Y') . '-' . date('m') . $id;
+            break;
+        }
+        return $return;
       }
-      return $return;
-            
-    }
-    else {
-      // First invoice being generated
-      $id = 1;
-      $result = str_replace('[invoice_id]', $id, $method);
-      return date($result);
+      else {
+        // First invoice being generated
+        $id = 1;
+        $result = str_replace('[invoice_id]', $id, $method);
+        return date($result);
+      }
     }
   }
 
-    /**
+  /**
      * Deletes multiple invoices by ID.
      *
      * @param $invoice_ids

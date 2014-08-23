@@ -11,7 +11,7 @@
 define('COMMERCE_INVOICE_METHOD_INFINITE', '[invoice_id]');
 
 // Supplier (copy of above)
-define('COMMERCE_INVOICE_METHOD_SUPPLIER', '[invoice_id]-[supplier_id]');
+define('COMMERCE_INVOICE_METHOD_SUPPLIER', '[invoice_number]');
 
 // Invoice id is regenerated every year
 define('COMMERCE_INVOICE_METHOD_YEAR', 'Y-[invoice_id]');

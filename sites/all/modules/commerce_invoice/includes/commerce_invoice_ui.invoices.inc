@@ -17,7 +17,7 @@ function commerce_invoice_settings_form($form, &$form_state) {
     '#default_value' => variable_get('commerce_invoice_number_method', COMMERCE_INVOICE_METHOD_YEAR),
     '#options' => array(
       COMMERCE_INVOICE_METHOD_INFINITE => t('Infinite (one single number, that is never reset, and incremented at each invoice generation)'),
-      COMMERCE_INVOICE_METHOD_SUPPLIER => t('Supplier generation)'),
+      COMMERCE_INVOICE_METHOD_SUPPLIER => t('Supplier generation'),
       COMMERCE_INVOICE_METHOD_YEAR => t('Reset every year, with an id incremented at each invoice generation (@invoice_number)', array('@invoice_number' => date('Y').'-[invoice_id]')),
       COMMERCE_INVOICE_METHOD_MONTH => t('Reset every month, with an id incremented at each invoice generation (@invoice_number)', array('@invoice_number' => date('Y-m').'-[invoice_id]'))
     )
