@@ -1,0 +1,106 @@
+<?php
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function leevingo_addressfield_email_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'addressfield') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_field_attach_presave().
+ *
+ * Store additional address fields serialized in addressfield data column.
+ */
+function leevingo_addressfield_email_field_attach_presave($entity_type, $entity) {
+  $addressfields = leevingo_addressfield_email_addressfield_types();
+  foreach ($addressfields as $field_name) {
+    if (isset($entity->$field_name)){
+      $default_fields = array_keys(addressfield_default_values());
+      $default_fields[] = 'element_key';
+      foreach ($entity->$field_name as $lang_code => $fields) {
+        foreach ($fields as $delta => $fieldset) {
+          $data = array();
+          foreach ($fieldset as $field_key => $field_value) {
+            // Compare fields with addressfield default fields and store any
+            // additional fields in data.
+            if (!in_array($field_key, $default_fields)){
+              // Store additional field value
+              $data[$field_key] = $field_value;
+            }
+          }
+          if (!empty($data)){
+            $entity->{$field_name}[$lang_code][$delta]['data'] = serialize($data);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_load().
+ *
+ * Load and set additional addressfield field values from serialized data
+ * column.
+ */
+function leevingo_addressfield_email_field_attach_load($entity_type, $entities, $age, $options){
+  $addressfields = leevingo_addressfield_email_addressfield_types();
+  $email_elements = drupal_map_assoc(array(
+    'email',
+  ));
+
+  foreach ($entities as $entity) {
+    foreach ($addressfields as $field_name) {
+      if (empty($entity->{$field_name})) {
+        continue;
+      }
+
+      foreach ($entity->$field_name as $lang_code => $fields) {
+        foreach ($fields as $delta => $fieldset) {
+          if (!empty($fieldset['data'])){
+            // Unserialize data, else skip if string
+            if (($data = unserialize($fieldset['data'])) && is_array($data)) {
+              // Store unserialized data values in additional fields
+              $email_data = array_intersect_key($data, $email_elements);
+              $entity->{$field_name}[$lang_code][$delta] = array_merge($fieldset, $email_data);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Returns an array of the field names of any addressfields.
+ */
+function leevingo_addressfield_email_addressfield_types() {
+  if (!isset($addressfields)) {
+    static $addressfields;
+    $result = db_query("SELECT field_name FROM {field_config} WHERE type = 'addressfield'");
+    $addressfields = array();
+    foreach($result as $row) {
+      $addressfields[] = $row->field_name;
+    }
+  }
+  return $addressfields;
+}
+
+function _leevingo_addressfield_email_render_address($format) {
+  $address = $format['#address'];
+
+  $format['email_block'] = array(
+    '#title' => t('Email'),
+    '#type' => 'addressfield_container',
+    'email' => array(
+      '#title' => t('Email'),
+      '#attributes' => array('class' => array('email')),
+      '#tag' => 'span',
+    ),
+  );
+
+  return $format;
+}
+

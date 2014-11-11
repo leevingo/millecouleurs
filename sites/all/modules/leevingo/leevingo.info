@@ -3,3 +3,4 @@ description = Module to provide and bundle a set of handy modules
 package = Leevingo
 
 core = 7.x
+scripts[] = js/leevingo.js

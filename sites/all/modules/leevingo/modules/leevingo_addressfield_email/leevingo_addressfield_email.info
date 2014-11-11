@@ -1,0 +1,8 @@
+name = Leevingo Address Field Email
+description = Implements an email field in an addressfield format handler.
+core = 7.x
+package = Fields
+
+dependencies[] = ctools
+dependencies[] = addressfield
+

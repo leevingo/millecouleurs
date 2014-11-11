@@ -70,11 +70,11 @@
       }
 
       /* 8.6 Invoice */
-      .print-wrapper label, 
+      .print-wrapper label,
       .print-wrapper .field-label {
         font-weight: bold;
       }
-      .print-wrapper label, 
+      .print-wrapper label,
       .print-wrapper .field-label,
       .print-wrapper .field-items,
       .print-wrapper .field-item {
@@ -120,8 +120,8 @@
         position: relative;
         font-size: 12px;
       }
-      .print-content .form-item, 
-      .print-content .field-name-number, 
+      .print-content .form-item,
+      .print-content .field-name-number,
       .print-content .field-name-commerce-customer-billing,
       .print-content .field-name-date-created {
         margin: 10px 0;
@@ -150,7 +150,7 @@
       .print-content .field-name-commerce-customer-shipping {
         position: absolute;
         left: 50%;
-        top: 110px;
+        top: 150px;
       }
       .print-content .field-name-number {
         position: absolute;
@@ -164,17 +164,40 @@
       }
       .print-content .field-name-commerce-line-items {
         position: relative;
-        padding-top: 225px;
+        padding-top: 265px;
+      }
+      .view-line-items-of-processing-orders #edit-actions,
+      .view-line-items-of-processing-orders thead,
+      .view-line-items-of-processing-orders caption {
+        display: none;
+      }
+      .view-line-items-of-processing-orders td {
+        padding: 0 0 0 10px;
+      }
+      .view-line-items-of-processing-orders td .form-type-textfield {
+        margin: 0;
+      }
+
+      .view-line-items-of-processing-orders .views-field-line-item-title {
+        width: 250px;
+      }
+      .view-line-items-of-processing-orders .views-field-rendered-entity {
+        width: 250px;
+      }
+      .print-content .field-name-invoice-conditions {
+        padding-top: 10px;
       }
     </style>
   </head>
   <body>
     <div class="print-wrapper">
-      <div class="print-header">
-        <div class="print-logo-wrapper"><?php print $print['logo']; ?></div>
-        <div class="print-site_name"><?php print $site_name; ?></div>
-      </div>
+      <?php if ($print['node']->title != 'Processing orders') : ?>
+        <div class="print-header">
+          <div class="print-logo-wrapper"><?php print $print['logo']; ?></div>
+          <div class="print-site_name"><?php print $site_name; ?></div>
+        </div>
       <div class="print-title"><?php print t('Invoice'); ?></div>
+      <?php endif; ?>
       <div class="print-content"><?php print $print['content']; ?></div>
       <div class="print-footer"><?php print $print['footer_message']; ?></div>
       <div class="print-source_url"><?php print $print['source_url']; ?></div>

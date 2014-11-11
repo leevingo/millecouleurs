@@ -152,21 +152,36 @@ pre {
   white-space: pre-wrap;
 }
 fieldset {
-  border: 1px solid #ccc;
-  padding: 2.5em 0 0 0;
+  border: 1px solid lightgray;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  padding: 10px 0 0 0;
   position: relative;
-  margin: 1em 0;
+  margin: 5px;
 }
 #commerce_product_product_form_group_product_general_info fieldset.collapsed {
   border-width: 1px;
   height: auto;
 }
 
+fieldset legend {
+  background-color: lightgrey;
+  display: block;
+  height: 30px;
+  width: 100%;
+  border: 1px solid lightgray;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  margin-bottom: 0px;
+}
+
 fieldset .fieldset-legend {
-  margin-top: 0.5em;
+  margin-top: 5px;
+  margin-left: 15px;
   position: absolute;
   text-transform: uppercase;
 }
+
 fieldset .fieldset-wrapper {
   padding: 0 13px 13px 15px;
 }
@@ -356,7 +371,7 @@ ul.secondary {
 ul.secondary li {
   border-right: none;
 }
-ul.secondary li a, 
+ul.secondary li a,
 ul.secondary li a:link {
   border: none;
   color: #ccc;
@@ -365,7 +380,7 @@ ul.secondary li a:link {
   line-height: 1.5em;
   padding: 0 1em;
 }
-ul.secondary li a:hover, 
+ul.secondary li a:hover,
 ul.secondary li a.active {
   background: #888;
   color: #fff;
@@ -469,8 +484,8 @@ a.button:visited,
 a.button:hover,
 a.button:active,
 .line-item-summary-view-cart a:link,
-.line-item-summary-view-cart a:visited, 
-.line-item-summary-view-cart a:hover, 
+.line-item-summary-view-cart a:visited,
+.line-item-summary-view-cart a:hover,
 .line-item-summary-view-cart a:active {
   text-decoration: none;
   color: #5a5a5a;
@@ -540,7 +555,7 @@ div.filter-options select {
 #container {
   margin: 0 auto;
   padding: 0 10px;
-  width: 940px;
+  width: 1070px;
 }
 
 /**
@@ -578,7 +593,7 @@ body.sidebar-second #main {
   float: left;
   margin: 0;
   padding: 0;
-  width: 700px;
+  width: 840px;
 }
 
 /**
@@ -687,7 +702,7 @@ body.sidebar-second #sidebar-second {
 
 #navigation ul li a {
   display: block;
-  padding: 0 2em 0 0;
+  padding: 0 20px 0 0;
 }
 
 #navigation #block-system-user-menu ul {
@@ -743,19 +758,42 @@ ul.action-links a {
 #block-locale-language li {
   display: inline-block;
 }
-/* 8.1 Order form */
+/* 8.1 Order form - products page*/
 .page-order-form td {
   height: auto;
   font-size: 12px;
 }
-.page-order-form td.views-field-field-product-extra-info {
-  width: 80px;
+.page-order-form .views-field-field-product-info-icon {
+  width: 20px;
 }
-.page-order-form td.views-field-title {
-  width: auto;
+.page-order-form  .views-field-field-product-info-slider {
+  display: none;
+  max-width: 450px;
+  position: absolute;
+  background-color: #f3f4ee;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 5px;
 }
-.page-order-form td.views-field-field-product-supplier {
-  width: 150px;
+.page-order-form  .views-field-field-product-info-slider img {
+  max-width: 100%;
+  height: auto;
+}
+.page-order-form .views-field-field-product-picture-icon {
+  width: 20px;
+}
+.page-order-form  .views-field-field-product-picture-slider {
+  display: none;
+  max-width: 450px;
+  position: absolute;
+  background-color: #f3f4ee;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+.page-order-form  .views-field-field-product-picture-slider img {
+  max-width: 100%;
+  height: auto;
 }
 .page-order-form td.views-field-field-product-unit {
   width: 55px;
@@ -766,6 +804,22 @@ ul.action-links a {
 .page-order-form td.views-field-add-to-cart-form {
   width: 65px;
 }
+
+.page-admin-commerce .views-field-commerce-price-editable {
+  width: 150px;
+}
+
+.page-admin-commerce .field-type-commerce-price .commerce-price-full + .form-item.form-type-select {
+  display: none;
+}
+
+.page-admin-commerce .field-name-field-product-extra-info textarea {
+  width: 300px;
+}
+.page-admin-commerce .views-field-field-product-unit-number-editable .form-type-textfield input {
+  width: 50px;
+}
+
 /* 8.2 Add to cart form */
 .commerce-add-to-cart label {
   display: none;
@@ -806,7 +860,7 @@ caption {
 }
 #commerce-product-ui-product-form label {
   display: inline-block;
-  width: 15%;
+  width: 115px;
 }
 #commerce-product-ui-product-form select {
   display: inline-block;
@@ -815,47 +869,104 @@ caption {
   display: inline-block;
 }
 #commerce-product-ui-product-form .field-name-field-product-unit {
-  margin-left: 20px;
+  //margin-left: 20px;
 }
-#commerce-product-ui-product-form .field-name-field-product-unit label {
+#commerce-product-ui-product-form .form-item-field-product-unit-und label {
   display: none;
+}
+#commerce-product-ui-product-form .form-item-commerce-price-und-0-include-tax label {
+  width: auto;
 }
 #commerce-product-ui-product-form #edit-field-product-unit-number-und-0-value {
   width: 100px;
 }
-#commerce-product-ui-product-form .form-item, #commerce-product-ui-product-form .form-actions {
+#commerce-product-ui-product-form .form-item-commerce-price-und-0-currency-code label {
+  display: none;
+}
+#commerce-product-ui-product-form .form-radios {
+  display: inline-block;
+}
+#commerce-product-ui-product-form .form-item,
+#commerce-product-ui-product-form .form-actions {
   margin-top: 5px;
   margin-bottom: 5px;
+  display: inline-block;
 }
-/* 8.5 Checkout page */
+#commerce-product-ui-product-form .form-type-radio label {
+  width: auto;
+}
+/* 8.5 Checkout page and order edit form*/
 /* 8.5.1 shipping and billing information */
+.page-admin-commerce-orders-edit label,
 #commerce-checkout-form-checkout label {
-  display: inline;
+  display: inline-block;
   font-size: 12px;
+  width: 150px;
 }
+
+#commerce-checkout-form-checkout .form-item-customer-profile-shipping-commerce-customer-profile-copy label {
+  width: auto;
+}
+
+.page-admin-commerce-orders-edit .form-item,
 #commerce-checkout-form-checkout .form-item {
   padding: 0;
 }
+
+.page-admin-commerce-orders-edit #edit-commerce-line-items-und-actions-product-sku {
+  width: 100%;
+}
+
 #edit-cart-contents {
-  margin-bottom: 50px;
+  margin-bottom: 10px;
 }
-#customer-profile-billing-ajax-wrapper {
+
+#field-requested-shipping-date-add-more-wrapper fieldset,
+#field-requested-shipping-date-add-more-wrapper .fieldset-wrapper,
+div[id*='customer-profile-shipping-field-requested-shipping-date-add-more-wrapper'] fieldset,
+div[id*='customer-profile-shipping-field-requested-shipping-date-add-more-wrapper'] .fieldset-wrapper{
+  border: none;
+  margin: 0;
+  padding:0;
+}
+
+#field-requested-shipping-date-add-more-wrapper.date-padding,
+div[id*='edit-customer-profile-shipping-field-requested-shipping-date-und-0-value'].date-padding {
+  padding: 0px;
+}
+
+.form-item-customer-profile-shipping-field-requested-shipping-date-und-0-value-date label,
+.form-item-customer-profile-shipping-field-requested-shipping-date-und-0-value-date input,
+.form-item-customer-profile-shipping-field-requested-shipping-date-und-0-value-date .description {
   display: inline-block;
-  width: 50%;
-  vertical-align: top;
 }
+
+#field-requested-shipping-date-add-more-wrapper legend,
+div[id*='customer-profile-shipping-field-requested-shipping-date-add-more-wrapper'] legend {
+  display: none;
+}
+
+#customer-profile-billing-ajax-wrapper {
+  display: initial;
+}
+
+#commerce-checkout-form-checkout .customer_profile_billing,
 #customer-profile-shipping-ajax-wrapper {
   display: inline-block;
-  width: 50%;
+  width: 49%;
   vertical-align: top;
+}
+
+.checkout-buttons {
+  border: none;
 }
 
 /* 8.6 Invoice */
 .entity-commerce-invoice label {
   display: inline;
 }
-.entity-commerce-invoice .form-item, 
-.entity-commerce-invoice .field-name-number, 
+.entity-commerce-invoice .form-item,
+.entity-commerce-invoice .field-name-number,
 .entity-commerce-invoice .field-name-commerce-customer-billing,
 .entity-commerce-invoice .field-name-date-created {
   margin: 10px 0;
@@ -888,12 +999,13 @@ caption {
 .entity-commerce-invoice .field-name-commerce-customer-shipping {
   position: absolute;
   left: 50%;
-  top: 140px;
+  top: 173px;
 }
 .entity-commerce-invoice .field-name-number {
   position: absolute;
   left: 0px;
   top: 165px;
+  padding: 0 !important;
 }
 .entity-commerce-invoice .field-name-date-created {
   position: absolute;
@@ -902,6 +1014,45 @@ caption {
 }
 .entity-commerce-invoice .field-name-commerce-line-items {
   position: relative;
-  padding-top: 250px;
+  padding-top: 300px;
+}
+
+/* 8.7 Orders */
+#views-form-commerce-orders-admin-page fieldset {
+  border: none;
+}
+
+#views-form-commerce-orders-admin-page fieldset legend {
+  display: none;
+}
+
+#views-form-commerce-orders-admin-page fieldset .fieldset-wrapper {
+  padding: 0;
+}
+
+.page-admin-commerce-orders .field-name-commerce-customer-billing,
+.page-user-orders .field-name-commerce-customer-billing,
+.page-admin-commerce-orders .field-name-commerce-customer-shipping,
+.page-user-orders .field-name-commerce-customer-shipping{
+  display: inline-block;
+  vertical-align: text-top;
+  width: 49%
+}
+
+.page-admin-commerce-orders .field-name-commerce-customer-billing .field-items,
+.page-user-orders .field-name-commerce-customer-billing .field-items,
+.page-admin-commerce-orders .field-name-commerce-customer-shipping .field-items,
+.page-user-orders .field-name-commerce-customer-shipping .field-items{
+  padding-left: 15px;
+}
+
+.page-admin-commerce-orders .field-name-number,
+.page-user-orders .field-name-number {
+  padding-top: 10px;
+}
+
+.page-admin-commerce-orders .field-name-invoice-conditions,
+.page-user-orders .field-name-invoice-conditions {
+  display: none;
 }
 /*-------------------------------------------------------------------------------------------------*/

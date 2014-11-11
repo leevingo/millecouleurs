@@ -5,7 +5,7 @@
  */
 function commerce_extra_ds_fields_ds_fields_info($entity_type) {
   global $user;
-  $file = drupal_get_path('module', 'commerce_extra_ds_fields') . '/includes/ds_fields.inc'; 
+  $file = drupal_get_path('module', 'commerce_extra_ds_fields') . '/includes/ds_fields.inc';
   $fields = array();
 
   $fields['user']['email'] = array(
@@ -36,6 +36,12 @@ function commerce_extra_ds_fields_ds_fields_info($entity_type) {
       'title' => t('Order created Date'),
       'field_type' => DS_FIELD_TYPE_FUNCTION,
       'function' => 'commerce_extra_ds_fields_order_date_created',
+      'file' => $file,
+  );
+  $fields['commerce_order']['invoice_conditions'] = array(
+      'title' => t('Invoice conditions'),
+      'field_type' => DS_FIELD_TYPE_FUNCTION,
+      'function' => 'commerce_extra_ds_fields_invoice_conditions',
       'file' => $file,
   );
 return $fields;
