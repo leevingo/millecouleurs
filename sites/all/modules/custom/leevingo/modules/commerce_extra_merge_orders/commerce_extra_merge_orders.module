@@ -1,0 +1,231 @@
+<?php
+
+/*
+ * Create a views-bulk-operation action and functions to merge commerce orders.
+ */
+
+/**
+ * Implements hook_action_info.
+ * @return type
+ */
+function commerce_extra_merge_orders_action_info() {
+  //Add vbo action to merge orders
+  $action = array(
+      'commerce_extra_merge_orders_merge_orders' => array(
+          'type' => 'commerce_order',
+          'label' => t('Merge orders'),
+          'configurable' => FALSE,
+          'pass rows' => TRUE, // this will ensure that the entire views row is passed as part of the context in your action callback.
+          'aggregate' => TRUE,
+      ),
+  );
+  return $action;
+}
+
+/**
+ * Implements hook_commerce_order_state_info().
+ * @return string
+ */
+function commerce_extra_merge_orders_commerce_order_state_info() {
+  $order_states['merged'] = array(
+      'name' => 'merged',
+      'title' => t('Merged'),
+      'description' => t('Orders in this state have been merged.'),
+      'weight' => 20,
+      'default_status' => 'merged',
+  );
+  return $order_states;
+}
+
+/**
+ * Implements hook_commerce_order_status_info()
+ * @return type
+ */
+//Add the status 'merged' to the order statuses.
+function commerce_extra_merge_orders_commerce_order_status_info() {
+  $order_statuses['merged'] = array(
+      'name' => 'merged',
+      'title' => t('Merged'),
+      'state' => 'merged',
+      'cart' => FALSE,
+      'status' => TRUE,
+  );
+  $order_statuses['merged-processing'] = array(
+      'name' => 'merged-processing',
+      'title' => t('Merged - Processing'),
+      'state' => 'merged',
+      'cart' => FALSE,
+      'status' => TRUE,
+  );
+  $order_statuses['merged-completed'] = array(
+      'name' => 'merged-completed',
+      'title' => t('Merged - Completed'),
+      'state' => 'merged',
+      'cart' => FALSE,
+      'status' => TRUE,
+  );
+  return $order_statuses;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function commerce_extra_merge_orders_form_alter(&$form, &$form_state, $form_id) {
+  // Disable form elements for merged orders.
+  if ($form_id == 'commerce_order_ui_order_form') {
+    if ($form['#entity']->status == 'merged') {
+      foreach (element_children($form) as $element) {
+        $form[$element]['#disabled'] = TRUE;
+      }
+      drupal_set_message(t("This order has been merged into another order and can't be changed."), 'warning');
+    }
+  }
+}
+
+/**
+ * Funtion to merge commerce orders (used in a vbo action).
+ * @param type $entity
+ * @param type $context
+ */
+function commerce_extra_merge_orders_merge_orders(&$entity, $context = array()) {
+  $orders = $context['rows'];
+  $validated = commerce_extra_merge_orders_validate($orders);
+  if ($validated === TRUE) {
+    //Get the correct customer info for the new order.
+    $customer_info = commerce_extra_merge_orders_get_customer_information($orders);
+    $new_uid = $customer_info['uid'];
+    //create the new order.
+    $new_order = commerce_order_new(intval($new_uid), $status = 'merged-processing', $type = 'commerce_order');
+    //create new order number.
+    $new_order_number = commerce_extra_merge_orders_create_new_order_number($orders);
+    $new_order->order_number = $new_order_number;
+    //Save the order to get it's ID.
+    commerce_order_save($new_order);
+    $new_order_id = $new_order->order_id;
+    //Create the order-wrapper.
+    $new_order_wrapper = entity_metadata_wrapper('commerce_order', $new_order);
+    //Loop through selected orders.
+    foreach ($orders as $key => $value) {
+      //Get order by order_id.
+      $order_id = $value->order_id;
+      $order = commerce_order_load($order_id);
+      //Get the line items from the order
+      $line_items = field_get_items('commerce_order', $order, 'commerce_line_items');
+      //Loop through the orders line items.
+      foreach ($line_items as $line_item) {
+        $line_item_id = $line_item['line_item_id'];
+        //Create a line-item from the existing.
+        $new_line_item = commerce_extra_merge_orders_create_line_item_from_existing($line_item_id, $new_order_id);
+        //Add the line item to the order using the wrapper.
+        $new_order_wrapper->commerce_line_items[] = $new_line_item;
+      }
+      //Set the order status to merged.
+      commerce_order_status_update($order, 'merged');
+    }
+    //Add billing information to the new order.
+    $new_order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id'] = $customer_info['billing_info'];
+    // Save the the new order.
+    commerce_order_save($new_order);
+    //Refresh the order to calculatie line-item price,...
+    commerce_cart_order_refresh($new_order);
+  } else {
+    $error = $validated;
+    drupal_set_message($error, 'error');
+    header("Location: {$_SERVER['HTTP_REFERER']}");
+    exit;
+  }
+}
+
+/**
+ * function to create line items from existing ones.
+ *
+ * @param type $line_item_id
+ * @param type $order_id
+ * @return type
+ */
+function commerce_extra_merge_orders_create_line_item_from_existing($line_item_id, $order_id) {
+  $item = commerce_line_item_load($line_item_id);
+  //Get product and quantity.
+  $product_items = field_get_items('commerce_line_item', $item, 'commerce_product');
+  $product = commerce_product_load($product_items[0]['product_id']);
+  $quantity = $item->quantity;
+  //Create a new line-item with product and quantity.
+  $line_item = commerce_product_line_item_new($product, $quantity, $order_id);
+  //Save the line-item.
+  commerce_line_item_save($line_item);
+  return $line_item;
+}
+
+/**
+ * Function to create new order number for the merged order.
+ *
+ * @param type $orders
+ * Expects an array with commerce orders.
+ * @return type
+ * Returns the new order number as a string.
+ */
+function commerce_extra_merge_orders_create_new_order_number($orders = array()) {
+  $new_order_number = '';
+  asort($orders);
+  foreach ($orders as $key => $value) {
+    $order_id = $value->order_id;
+    $new_order_number = $order_id . '-' . $new_order_number;
+  }
+  $new_order_number = $new_order_number . 'M';
+  return $new_order_number;
+}
+
+/**
+ * Function to get the customer information for the merged order.
+ *
+ * @param type $orders
+ * Expects an array with commerce orders.
+ * @return type
+ * Returns an array with the uid and billing information.
+ */
+function commerce_extra_merge_orders_get_customer_information($orders = array()) {
+  $customer_info = array();
+  $orders_keys = array_keys($orders);
+  $order_id = $orders[$orders_keys[0]]->order_id;
+  $order = commerce_order_load($order_id);
+  //Get user_id
+  $owner = $order->uid;
+  $customer_info['uid'] = $owner;
+  //Get billing info.
+  $profile_id = $order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id'];
+  $customer_info['billing_info'] = $profile_id;
+  return $customer_info;
+}
+
+/**
+ * Function to validate the merge proces.
+ *
+ * @param type $orders
+ * Expects an array with commerce orders.
+ * @return type $error
+ * Returns an error string or TRUE.
+ */
+function commerce_extra_merge_orders_validate($orders = array()) {
+
+  if (empty($orders)) {
+    return $error = t('Please select two or more orders.');
+  }
+
+  foreach ($orders as $key => $value) {
+    $order_id = $value->order_id;
+    $order = commerce_order_load($order_id);
+    $owners[] = $order->uid;
+    if ($order->status == 'merged'){
+      return $error = t('These orders have already been merged!');
+    }
+    elseif ($order->status == 'completed'){
+      return $error = t('These orders have already been completed!');
+    }
+  }
+  if (array_unique($owners) == $owners) {
+    return $error = t('You can not merge orders from multiple customers');
+  }
+  else {
+    return TRUE;
+  }
+}
