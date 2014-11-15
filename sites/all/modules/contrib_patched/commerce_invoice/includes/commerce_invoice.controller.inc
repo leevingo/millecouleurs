@@ -37,7 +37,7 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
      * Saves an invoice.
      *
      * When saving an invoice, the function will automatically create an invoice number
-     * based 
+     * based
      *
      * @param $invoice
      *   The full invoice object to save.
@@ -55,59 +55,17 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
             if (empty($invoice->invoice_id)) {
                 $invoice->created = REQUEST_TIME;
                 $invoice->invoice_number = $this->generate_invoice_id($invoice);
-
-                $this->invoke('presave', $invoice);
-                $invoice = $this->_save($invoice, $transaction);
-                $this->invoke('insert', $invoice);
-            } else {
-                $this->invoke('presave', $invoice);
-                $invoice = $this->_save($invoice, $transaction);
-                $this->invoke('insert', $invoice);
             }
 
-            return $invoice;
+            return parent::save($invoice, $transaction);//$invoice;
         } catch (Exception $e) {
             throw $e;
         }
     }
 
-    /**
-     * Saves an invoice (helper function)
-     *
-     * @param $invoice
-     *   The full invoice object to save.
-     * @param $transaction
-     *   An optional transaction object.
-     *
-     * @return
-     *   The saved invoice object.
-     */
-    private function _save($invoice, DatabaseTransaction $transaction = NULL) {
-        $transaction = isset($transaction) ? $transaction : db_transaction();
-        try {
-            if (empty($invoice->invoice_id)) {
-                // Save the new invoice
-                drupal_write_record('commerce_invoice', $invoice);
-                field_attach_insert('commerce_invoice', $invoice);
-            } else {
-                drupal_write_record('commerce_invoice', $invoice, 'invoice_id');
-                field_attach_update('commerce_invoice', $invoice);
-            }
-            // Ignore slave server temporarily to give time for the
-            // saved invoice to be propagated to the slave.
-            db_ignore_slave();
-
-
-            return $invoice;
-        } catch (Exception $e) {
-            $transaction->rollback();
-            watchdog_exception('commerce_invoice', $e);
-            throw $e;
-        }
-    }
     /**
    * Generates invoice id
-   * 
+   *
    * @return
    *   The generated invoice id
    */
@@ -136,7 +94,7 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
         $new_number_for_supplier = 1;
         $return = str_replace('[invoice_number]', $new_number_for_supplier, $method);
         return $return;
-      }    
+      }
     }
     else {
       $result = db_select('commerce_invoice', 'i')
@@ -264,6 +222,7 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
      *   The renderable array.
      */
     public function buildContent($invoice, $view_mode = 'administrator', $langcode = NULL, $content = array()) {
+
         // Load the order this invoice is attached to.
         $order = commerce_order_load($invoice->order_id);
 
@@ -292,7 +251,7 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
         $content['created'] = array(
             '#type' => 'item',
             '#title' => t('Date'),
-            '#markup' => format_date($invoice->created, 'short'),
+            '#markup' => format_date($invoice->created, 'custom', 'd-m-Y'),
             '#prefix' => '<div class="invoice-created">',
             '#suffix' => '</div>',
         );
@@ -305,13 +264,17 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
         $supplier_city = $supplier_term->field_term_supplier_city[LANGUAGE_NONE][0]['value'];
         $supplier_vat_number = $supplier_term->field_term_supplier_vat_number[LANGUAGE_NONE][0]['value'];
         $supplier_bank_acc_nr = $supplier_term->field_term_supplier_bank_acc_nr[LANGUAGE_NONE][0]['value'];
+        $supplier_mail = $supplier_term->field_term_supplier_mail_address[LANGUAGE_NONE][0]['value'];
+        $supplier_phone = $supplier_term->field_term_supplier_phone_number[LANGUAGE_NONE][0]['value'];
         $supplier_full =
                 "<div>
                 <span>" . $supplier_name . "</span><br>
                 <span>" . $supplier_street . " " . $supplier_building_nr . "</span><br>
-                <span>" . $supplier_zip_code . " " . $supplier_city . "</span><br>  
-                <span>BTW: " . $supplier_vat_number . "</span><br> 
-                <span>Bankrek: " . $supplier_bank_acc_nr . "</span><br>  
+                <span>" . $supplier_zip_code . " " . $supplier_city . "</span><br>
+                <span>" . t('BTW nr: ') . $supplier_vat_number . "</span><br>
+                <span>" . t('Bankreknr: ') . $supplier_bank_acc_nr . "</span><br>
+                <span>" . t('Mail: ') . $supplier_mail . "</span><br>
+                <span>" . t('Tel: ') . $supplier_phone . "</span><br>
               </div>";
         $content['supplier'] = array(
             '#type' => 'item',
@@ -322,7 +285,6 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
         );
 
         $content['commerce_order'] = entity_build_content('commerce_order', $order, $view_mode, $langcode);
-
 
         return parent::buildContent($invoice, $view_mode, $langcode, $content);
     }

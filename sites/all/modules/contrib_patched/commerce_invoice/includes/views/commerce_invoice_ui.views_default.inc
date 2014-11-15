@@ -3,13 +3,168 @@
 /**
  * Views for the default invoice UI.
  */
- 
+
 /**
  * Implements hook_views_default_views()
  */
 function commerce_invoice_ui_views_default_views() {
   $views = array();
-  
+
+  $view = new view();
+  $view->name = 'invoices';
+  $view->description = 'Admin view for invoices';
+  $view->tag = 'default';
+  $view->base_table = 'commerce_invoice';
+  $view->human_name = 'Invoices';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'Invoices';
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'none';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'better_exposed_filters';
+  $handler->display->display_options['exposed_form']['options']['reset_button'] = TRUE;
+  $handler->display->display_options['exposed_form']['options']['bef'] = array(
+    'general' => array(
+      'allow_secondary' => 1,
+      'secondary_label' => 'Advanced options',
+    ),
+    'commerce_customer_address_name_line' => array(
+      'more_options' => array(
+        'is_secondary' => 0,
+        'bef_filter_description' => '',
+        'tokens' => array(
+          'available' => array(
+            0 => 'global_types',
+          ),
+        ),
+      ),
+    ),
+  );
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'views_bulk_operations' => 'views_bulk_operations',
+    'rendered_entity' => 'rendered_entity',
+    'order_number' => 'order_number',
+    'invoice_number' => 'invoice_number',
+    'created' => 'created',
+    'created_1' => 'created_1',
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'views_bulk_operations' => array(
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'rendered_entity' => array(
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'order_number' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'invoice_number' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'created' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'created_1' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+  );
+  /* Relationship: Commerce Invoice: Order */
+  $handler->display->display_options['relationships']['order_id']['id'] = 'order_id';
+  $handler->display->display_options['relationships']['order_id']['table'] = 'commerce_invoice';
+  $handler->display->display_options['relationships']['order_id']['field'] = 'order_id';
+  /* Relationship: Commerce Order: Referenced customer profile */
+  $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['id'] = 'commerce_customer_billing_profile_id';
+  $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['table'] = 'field_data_commerce_customer_billing';
+  $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['field'] = 'commerce_customer_billing_profile_id';
+  $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['relationship'] = 'order_id';
+  $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['required'] = TRUE;
+  /* Field: Commerce Customer Profile: Rendered Commerce Customer profile */
+  $handler->display->display_options['fields']['rendered_entity']['id'] = 'rendered_entity';
+  $handler->display->display_options['fields']['rendered_entity']['table'] = 'views_entity_commerce_customer_profile';
+  $handler->display->display_options['fields']['rendered_entity']['field'] = 'rendered_entity';
+  $handler->display->display_options['fields']['rendered_entity']['relationship'] = 'commerce_customer_billing_profile_id';
+  $handler->display->display_options['fields']['rendered_entity']['label'] = 'Customer';
+  $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 1;
+  $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'administrator';
+  $handler->display->display_options['fields']['rendered_entity']['bypass_access'] = 0;
+  /* Field: Commerce Order: Order number */
+  $handler->display->display_options['fields']['order_number']['id'] = 'order_number';
+  $handler->display->display_options['fields']['order_number']['table'] = 'commerce_order';
+  $handler->display->display_options['fields']['order_number']['field'] = 'order_number';
+  $handler->display->display_options['fields']['order_number']['relationship'] = 'order_id';
+  $handler->display->display_options['fields']['order_number']['label'] = 'Order nr';
+  /* Field: Commerce Invoice: Invoice number */
+  $handler->display->display_options['fields']['invoice_number']['id'] = 'invoice_number';
+  $handler->display->display_options['fields']['invoice_number']['table'] = 'commerce_invoice';
+  $handler->display->display_options['fields']['invoice_number']['field'] = 'invoice_number';
+  $handler->display->display_options['fields']['invoice_number']['label'] = 'Invoice nr';
+  $handler->display->display_options['fields']['invoice_number']['link_to_invoice'] = 'admin';
+  /* Field: Commerce Invoice: Created date */
+  $handler->display->display_options['fields']['created']['id'] = 'created';
+  $handler->display->display_options['fields']['created']['table'] = 'commerce_invoice';
+  $handler->display->display_options['fields']['created']['field'] = 'created';
+  $handler->display->display_options['fields']['created']['label'] = 'Invoice date';
+  $handler->display->display_options['fields']['created']['date_format'] = 'custom';
+  $handler->display->display_options['fields']['created']['custom_date_format'] = 'd/m/Y';
+  /* Field: Commerce Order: Created date */
+  $handler->display->display_options['fields']['created_1']['id'] = 'created_1';
+  $handler->display->display_options['fields']['created_1']['table'] = 'commerce_order';
+  $handler->display->display_options['fields']['created_1']['field'] = 'created';
+  $handler->display->display_options['fields']['created_1']['relationship'] = 'order_id';
+  $handler->display->display_options['fields']['created_1']['label'] = 'Order date';
+  $handler->display->display_options['fields']['created_1']['date_format'] = 'custom';
+  $handler->display->display_options['fields']['created_1']['custom_date_format'] = 'd/m/Y';
+  /* Field: Commerce Invoice: Operations links */
+  $handler->display->display_options['fields']['operations']['id'] = 'operations';
+  $handler->display->display_options['fields']['operations']['table'] = 'commerce_invoice';
+  $handler->display->display_options['fields']['operations']['field'] = 'operations';
+  $handler->display->display_options['fields']['operations']['add_destination'] = 1;
+
+  /* Display: Admin Page */
+  $handler = $view->new_display('page', 'Admin Page', 'page');
+
+  $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
+  $handler->display->display_options['path'] = 'admin/commerce/invoices/list';
+  $handler->display->display_options['menu']['type'] = 'default tab';
+  $handler->display->display_options['menu']['title'] = 'Invoices';
+  $handler->display->display_options['menu']['weight'] = '-10';
+  $handler->display->display_options['tab_options']['type'] = 'normal';
+  $handler->display->display_options['tab_options']['title'] = 'Invoices';
+  $handler->display->display_options['tab_options']['description'] = 'Manage invoices in the store.';
+  $handler->display->display_options['tab_options']['weight'] = '0';
+  $handler->display->display_options['tab_options']['name'] = 'management';
+
+  $views[$view->name] = $view;
+
   $view = new view;
   $view->name = 'user_invoices';
   $view->description = '';
@@ -346,10 +501,10 @@ function commerce_invoice_ui_views_default_views() {
   $handler->display->display_options['menu']['title'] = 'Invoices';
   $handler->display->display_options['menu']['weight'] = '30';
 
-  
+
   $views[$view->name] = $view;
-  
+
   return $views;
 }
 
-  
+

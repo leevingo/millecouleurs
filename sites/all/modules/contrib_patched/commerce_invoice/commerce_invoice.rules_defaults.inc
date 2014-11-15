@@ -13,10 +13,10 @@ function commerce_invoice_default_rules_configuration() {
   $rules = array();
 
   // Add a reaction rule to generate an invoice number
-  // when an order is completed
+  // when an order is invoiced
   $rule = rules_reaction_rule();
 
-  $rule->label = t('Generate invoice when order is completed');
+  $rule->label = t('Generate invoice when order is invoiced');
   $rule->active = TRUE;
 
   $rule
@@ -24,7 +24,7 @@ function commerce_invoice_default_rules_configuration() {
     ->condition('data_is', array(
       'data:select' => 'commerce-order:status',
       'op' => '==',
-      'value' => 'completed'
+      'value' => 'invoiced'
     ))
     ->condition(rules_condition('commerce_invoice_exists', array(
       'commerce_order:select' => 'commerce-order'
@@ -33,8 +33,8 @@ function commerce_invoice_default_rules_configuration() {
       'commerce_order:select' => 'commerce-order',
     ));
 
-  $rules['commerce_invoice_generate_when_completed'] = $rule;
-  
+  $rules['commerce_invoice_generate_when_invoiced'] = $rule;
+
   // Add a reaction rule to send invoice e-mail when a new commerce invoice is saved.
   $rule = rules_reaction_rule();
 
@@ -46,7 +46,7 @@ function commerce_invoice_default_rules_configuration() {
     ->action('mail', array(
       'to' => '[commerce-invoice:order:mail]',
       'subject' => t('Invoice [commerce-invoice:invoice-number] at [site:name]'),
-      'message' => t("Your order [commerce-invoice:order:order-number] is now complete.\n\nYou will be able to find the invoice for your order at:\n\n[site:url]/user/[commerce-invoice:uid]/invoices/[commerce-invoice:invoice-id]\n\nPlease contact us if you have any questions about your invoice."),
+      'message' => t("Your order [commerce-invoice:order:order-number] is now invoiced.\n\nYou will be able to find the invoice for your order at:\n\n[site:url]/user/[commerce-invoice:uid]/invoices/[commerce-invoice:invoice-id]\n\nPlease contact us if you have any questions about your invoice."),
       'from' => '',
     ));
 

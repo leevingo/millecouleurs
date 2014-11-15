@@ -851,8 +851,11 @@ caption {
 #block-commerce-cart-cart {
   margin-top: 60px;
 }
-#block-commerce-cart-cart h2{
+#block-commerce-cart-cart h2 {
   margin: 5px 0;
+}
+#block-commerce-cart-cart td {
+  font-size: 10px;
 }
 /* 8.4 product form */
 #commerce-product-ui-product-form {
@@ -979,12 +982,12 @@ div[id*='customer-profile-shipping-field-requested-shipping-date-add-more-wrappe
 .entity-commerce-invoice .invoice-number {
   position: absolute;
   left: 0px;
-  top: 125px;
+  top: 200px;
 }
 .entity-commerce-invoice .invoice-created {
   position: absolute;
   left: 0px;
-  top: 140px;
+  top: 215px;
 }
 .entity-commerce-invoice .invoice-supplier  {
   position: absolute;

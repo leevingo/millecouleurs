@@ -38,23 +38,109 @@ function mdmc_form_alter(&$form, &$form_state, $form_id) {
       }
     }
   }
-  // Disable form elements for completed orders with invoices.
-  if ($form_id == 'commerce_order_ui_order_form') {
-    if ($form['#entity']->status == 'completed') {
-      $invoices = array();
-      $invoices = db_select('commerce_invoice', 'ci')
-          ->fields('ci', array('invoice_id'))
-          ->condition('order_id', $form['#entity']->order_id)
-          ->execute()
-          ->fetchAll();
+}
 
-      if (!empty($invoices)) {
-        foreach (element_children($form) as $element) {
-        $form[$element]['#disabled'] = TRUE;
-        }
-        drupal_set_message(t("This order has been completed and has " . count($invoices) . " invoices. It can no longer be changed."), 'warning');
+/**
+ * Implements hook commerce_entity_access().
+ */
+function mdmc_commerce_entity_access($op, $entity, $account, $entity_type) {
+  if ($entity_type = 'commerce_order') {
+    // Disable deleting completed orders.
+    if (isset($entity->status) && (($op == 'delete') && ($entity->status == 'completed'))) {
+      global $user;
+      if (!in_array('administrator', $user->roles)) {
+        return FALSE;
       }
     }
+  }
+}
+
+/**
+ * Implements hook_action_info.
+ * @return type
+ */
+function mdmc_action_info() {
+  //Add vbo actions to set order status
+  $action = array(
+    'mdmc_set_order_processing' => array(
+        'type' => 'commerce_order',
+        'label' => t('Set order status: Processing'),
+        'configurable' => FALSE,
+        'pass rows' => TRUE, // this will ensure that the entire views row is passed as part of the context in your action callback.
+        'aggregate' => TRUE,
+    ),
+    'mdmc_set_order_completed' => array(
+        'type' => 'commerce_order',
+        'label' => t('Set order status: Completed'),
+        'configurable' => FALSE,
+        'pass rows' => TRUE, // this will ensure that the entire views row is passed as part of the context in your action callback.
+        'aggregate' => TRUE,
+    ),
+    'mdmc_product_enable' => array(
+        'type' => 'commerce_product',
+        'label' => t('Set product status: Enabled'),
+        'configurable' => FALSE,
+        'pass rows' => TRUE, // this will ensure that the entire views row is passed as part of the context in your action callback.
+        'aggregate' => TRUE,
+    ),
+    'mdmc_product_disable' => array(
+        'type' => 'commerce_product',
+        'label' => t('Set product status: Disabled'),
+        'configurable' => FALSE,
+        'pass rows' => TRUE, // this will ensure that the entire views row is passed as part of the context in your action callback.
+        'aggregate' => TRUE,
+    ),
+  );
+  return $action;
+}
+
+/**
+ * VBO callback to set orders to processing.
+ */
+function mdmc_set_order_processing(&$entity, $context = array()) {
+  foreach ($entity as $order_id => $order) {
+    dsm($order);
+    if (($order->status != 'invoiced') && ($order->status != 'merged')) {
+      commerce_order_status_update($order, 'processing');
+    }
+    else {
+      drupal_set_message(t("You can't change one or more of these orders."), 'error');
+      header("Location: {$_SERVER['HTTP_REFERER']}");
+      exit;
+    }
+  }
+}
+/**
+ * VBO callback to set orders to completed.
+ */
+function mdmc_set_order_completed(&$entity, $context = array()) {
+  foreach ($entity as $order_id => $order) {
+    if (($order->status != 'invoiced') && ($order->status != 'merged')) {
+      commerce_order_status_update($order, 'completed');
+    }
+    else {
+      drupal_set_message(t("You can't change one or more of these orders."), 'error');
+      header("Location: {$_SERVER['HTTP_REFERER']}");
+      exit;
+    }
+  }
+}
+/**
+ * VBO callback to enable products.
+ */
+function mdmc_product_enable (&$entity, $context = array()) {
+  foreach ($entity as $product_id => $product) {
+    $product->status = 1;
+    commerce_product_save($product);
+  }
+}
+/**
+ * VBO callback to disable products.
+ */
+function mdmc_product_disable (&$entity, $context = array()) {
+  foreach ($entity as $product_id => $product) {
+    $product->status = 0;
+    commerce_product_save($product);
   }
 }
 

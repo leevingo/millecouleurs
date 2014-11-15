@@ -17,7 +17,7 @@ function commerce_invoice_views_data() {
     'title' => t('Commerce Invoice'),
     'help' => t('Invoice generated for an order.'),
   );
-  
+
   // Expose the invoice ID.
   $data['commerce_invoice']['invoice_id'] = array(
     'title' => t('Invoice ID', array(), array('context' => 'a drupal commerce invoice')),
@@ -39,7 +39,7 @@ function commerce_invoice_views_data() {
       'validate type' => 'order_id',*/
     ),
   );
-  
+
   // Expose the invoice number.
   $data['commerce_invoice']['invoice_number'] = array(
     'title' => t('Invoice number', array(), array('context' => 'a drupal commerce invoice')),
@@ -58,7 +58,7 @@ function commerce_invoice_views_data() {
       'handler' => 'views_handler_argument_string',
     ),
   );
-  
+
   // Expose the order id
   $data['commerce_invoice']['order_id'] = array(
     'title' => t('Order id'),
@@ -73,7 +73,22 @@ function commerce_invoice_views_data() {
       'label' => t('Order associated to the invoice'),
     ),
   );
-  
+
+  // Expose the supplier tid
+  $data['commerce_invoice']['supplier_tid'] = array(
+    'title' => t('Supplier tid'),
+    'help' => t('The supplier tid associated to the invoice.'),
+    'relationship' => array(
+      'title' => t('Supplier'),
+      'help' => t("Relate this invoice to its supplier"),
+      'handler' => 'views_handler_relationship',
+      'base' => 'taxonomy_term_data',
+      'base field' => 'tid',
+      'field' => 'supplier_tid',
+      'label' => t('Supplier associated to the invoice'),
+    ),
+  );
+
   // Expose the invoice type.
   $data['commerce_invoice']['type'] = array(
     'title' => t('Invoice type', array(), array('context' => 'a drupal commerce invoice')),
@@ -92,7 +107,7 @@ function commerce_invoice_views_data() {
       'handler' => 'views_handler_argument_string',
     ),
   );
-  
+
   // Expose the owner uid.
   $data['commerce_invoice']['uid'] = array(
     'title' => t('Uid'),
@@ -122,7 +137,7 @@ function commerce_invoice_views_data() {
       'label' => t('Invoice owner'),
     ),
   );
-  
+
   // Expose the created timestamp.
   $data['commerce_invoice']['created'] = array(
     'title' => t('Created date'),
@@ -138,7 +153,15 @@ function commerce_invoice_views_data() {
       'handler' => 'views_handler_filter_date',
     ),
   );
-  
+
+  $data['commerce_invoice']['operations'] = array(
+    'field' => array(
+      'title' => t('Operations links'),
+      'help' => t('Display all the available operations links for the invoice.'),
+      'handler' => 'commerce_invoice_handler_field_invoice_operations',
+    )
+  );
+
   return $data;
 }
 

@@ -9,7 +9,42 @@
  */
 function commerce_invoice_ui_menu() {
   $items = array();
-  
+
+  $items['admin/commerce/invoices/%commerce_invoice'] = array(
+    'title' => 'Invoice',
+    'page callback' => 'commerce_invoice_ui_invoice_view',
+    'page arguments' => array(3),
+    'access callback' => 'commerce_invoice_access',
+    'access arguments' => array('view', 3),
+  );
+  $items['admin/commerce/invoices/%commerce_invoice/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  $items['admin/commerce/invoices/%commerce_invoice/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'commerce_invoice_ui_invoice_form_wrapper',
+    'page arguments' => array(3),
+    'access callback' => 'commerce_invoice_access',
+    'access arguments' => array('update', 3),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -5,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/commerce_invoice_ui.invoices.inc',
+  );
+  $items['admin/commerce/invoices/%commerce_invoice/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'commerce_invoice_ui_invoice_delete_form_wrapper',
+    'page arguments' => array(3),
+    'access callback' => 'commerce_invoice_access',
+    'access arguments' => array('delete', 3),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 20,
+    'context' => MENU_CONTEXT_INLINE,
+    'file' => 'includes/commerce_invoice_ui.invoices.inc',
+  );
   $items['admin/commerce/config/invoice'] = array(
     'title' => 'Invoice settings',
     'description' => 'Configure general invoice settings.',
@@ -23,9 +58,8 @@ function commerce_invoice_ui_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  
-  $items['admin/commerce/orders/%commerce_order/invoice'] = array(
-    'title' => 'Invoice',
+  $items['admin/commerce/orders/%commerce_order/invoices'] = array(
+    'title' => 'Invoices',
     'page callback' => 'commerce_invoice_ui_invoice_view_by_order',
     'page arguments' => array(3),
     'access callback' => 'commerce_invoice_ui_access_by_order',
@@ -34,18 +68,6 @@ function commerce_invoice_ui_menu() {
     'weight' => -5,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-  
-  $items['admin/commerce/orders/%commerce_order/invoice/%commerce_invoice'] = array(
-    'title' => 'Invoice',
-    'page callback' => 'commerce_invoice_ui_invoice_view_by_invoice',
-    'page arguments' => array(3, 5),
-    'access callback' => 'commerce_invoice_ui_access_by_order',
-    'access arguments' => array('view', 3),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => -5,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-  
   $items['user/%user/invoices/%commerce_invoice'] = array(
     'title callback' => 'commerce_invoice_ui_invoice_title',
     'title arguments' => array(3),
@@ -95,7 +117,7 @@ function commerce_invoice_ui_set_breadcrumb($view_mode = 'administrator') {
       l(t('Home'), '<front>'),
       l(t('Administration'), 'admin'),
       l(t('Store'), 'admin/commerce'),
-      l(t('Orders', array(), array('context' => 'a drupal commerce order')), 'admin/commerce/orders'),
+      l(t('Invoices', array(), array('context' => 'a drupal commerce invoice')), 'admin/commerce/invoices'),
     );
   }
 
@@ -136,9 +158,9 @@ function commerce_invoice_ui_invoice_view($invoice, $view_mode = 'administrator'
  *   An array as expected by drupal_render().
  */
 function commerce_invoice_ui_invoice_view_by_order($order, $view_mode = 'administrator', $breadcrumb = TRUE) {
-  
+
   $query = new EntityFieldQuery();
-  
+
   $result = $query
     ->entityCondition('entity_type', 'commerce_invoice')
     ->propertyCondition('order_id', $order->order_id)
@@ -148,31 +170,11 @@ function commerce_invoice_ui_invoice_view_by_order($order, $view_mode = 'adminis
   $list = array();
   foreach ($commerce_invoice_keys as $commerce_invoice_key) {
     $invoice = commerce_invoice_load($commerce_invoice_key);
-    $supplier_term = taxonomy_term_load($invoice->supplier_tid);    
-    $list[] = l('Invoice: ' . $invoice->invoice_number . ' (for supplier: ' . $supplier_term->name . ')', 'admin/commerce/orders/' . $order->order_id . '/invoice/' . $invoice->invoice_id);
+    $supplier_term = taxonomy_term_load($invoice->supplier_tid);
+    $list[] = l('Supplier: ' . $supplier_term->name . ' - Invoice nr ' . $invoice->invoice_number . '.', 'admin/commerce/invoices/' . $invoice->invoice_id);
   }
   return theme('item_list', array('items' => $list));
 
-}
-
-/**
- * Display the order for this invoice and supplier.
- * @param type $order
- * @param type $invoice
- */
-function commerce_invoice_ui_invoice_view_by_invoice($order, $invoice) {
-  if ($invoice) {
-    // Breadcrumb.
-    commerce_invoice_ui_set_breadcrumb();
-
-    drupal_add_css(drupal_get_path('module', 'commerce_order') . '/theme/commerce_order.css');
-
-    return entity_view('commerce_invoice', array($invoice->invoice_id => $invoice), 'administrator', NULL, TRUE);
-  }
-  else {
-    drupal_set_message(t('The invoice for this order has not been generated yet'), 'warning');
-    return '';
-  }
 }
 
 /**
@@ -188,11 +190,41 @@ function commerce_invoice_ui_invoice_view_by_invoice($order, $invoice) {
  */
 function commerce_invoice_ui_access_by_order($op, $order = NULL, $account = NULL) {
   $invoice = commerce_invoice_load_by_order_id($order->order_id);
-  
+
   if ($invoice) {
     return commerce_invoice_access($op, $invoice, $account, 'commerce_invoice');
   }
   else {
     return FALSE;
+  }
+}
+
+
+/**
+ * Implements hook commerce_entity_access().
+ */
+function commerce_invoice_ui_commerce_entity_access($op, $entity, $account, $entity_type) {
+  if ($entity_type = 'commerce_order') {
+    // Disable updating or deleting invoiced orders.
+    if (isset($entity->status) && ($entity->status == 'invoiced')) {
+      global $user;
+      if (!in_array('administrator', $user->roles)) {
+        if ($op == 'update') {
+          $invoices = array();
+          $invoices = db_select('commerce_invoice', 'ci')
+              ->fields('ci', array('invoice_id'))
+              ->condition('order_id', $entity->order_id)
+              ->execute()
+              ->fetchAll();
+
+          if (!empty($invoices)) {
+            return FALSE;
+          }
+        }
+        elseif($op == 'delete') {
+          return FALSE;
+        }
+      }
+    }
   }
 }

@@ -974,7 +974,6 @@ function commerce_simplexml_add_children(&$simplexml_element, $child_data) {
 function commerce_entity_access($op, $entity, $account, $entity_type) {
   global $user;
   $account = isset($account) ? $account : $user;
-
   $entity_info = entity_get_info($entity_type);
 
   if ($op == 'view') {

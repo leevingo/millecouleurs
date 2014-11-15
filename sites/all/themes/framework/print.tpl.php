@@ -130,12 +130,12 @@
       .print-content .invoice-number {
         position: absolute;
         left: 0px;
-        top: 100px;
+        top: 170px;
       }
       .print-content .invoice-created {
         position: absolute;
         left: 0px;
-        top: 117px;
+        top: 187px;
       }
       .print-content .invoice-supplier  {
         position: absolute;

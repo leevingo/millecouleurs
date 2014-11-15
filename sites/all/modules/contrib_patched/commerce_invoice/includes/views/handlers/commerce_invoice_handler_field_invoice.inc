@@ -56,7 +56,6 @@ class commerce_invoice_handler_field_invoice extends views_handler_field {
     if (!empty($this->options['link_to_invoice']) && in_array($this->options['link_to_invoice'], array('customer', 'admin')) && $data !== NULL && $data !== '') {
       $uid = $this->get_value($values, 'uid');
       $invoice_id = $this->get_value($values, 'invoice_id');
-      $order_id = $this->get_value($values, 'order_id');
 
       if ($this->options['link_to_invoice'] == 'customer' && $uid) {
         $this->options['alter']['make_link'] = TRUE;
@@ -64,7 +63,7 @@ class commerce_invoice_handler_field_invoice extends views_handler_field {
       }
       elseif ($this->options['link_to_invoice'] == 'admin') {
         $this->options['alter']['make_link'] = TRUE;
-        $this->options['alter']['path'] = 'admin/commerce/orders/' . $order_id . '/invoice';
+        $this->options['alter']['path'] = 'admin/commerce/invoices/' . $invoice_id;
       }
     }
 

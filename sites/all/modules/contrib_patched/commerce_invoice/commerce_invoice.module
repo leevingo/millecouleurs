@@ -19,6 +19,15 @@ define('COMMERCE_INVOICE_METHOD_YEAR', 'Y-[invoice_id]');
 // Invoice id is regenerated every month
 define('COMMERCE_INVOICE_METHOD_MONTH', 'Y-m-[invoice_id]');
 
+// Invoice statuses
+define('COMMERCE_INVOICE_STATUS_NEW', 'new');
+define('COMMERCE_INVOICE_STATUS_UNPAID_UNPAID', 'unpaid_unpaid');
+define('COMMERCE_INVOICE_STATUS_UNPAID_RAPPEL', 'unpaid_rappel');
+define('COMMERCE_INVOICE_STATUS_PAID_CASH', 'paid_cash');
+define('COMMERCE_INVOICE_STATUS_PAID_TRANSER', 'paid_transfer');
+define('COMMERCE_INVOICE_STATUS_CANCELLED', 'cancelled');
+
+
 /**
  * Implements hook_entity_info().
  */
@@ -27,12 +36,15 @@ function commerce_invoice_entity_info() {
       'commerce_invoice' => array(
           'label' => t('Commerce Invoice'),
           'controller class' => 'CommerceInvoiceEntityController',
+          'locking mode' => 'pessimistic',
           'base table' => 'commerce_invoice',
-          'fieldable' => FALSE,
+          'load hook' => 'commerce_invoice_load',
+          'uri callback' => 'commerce_invoice_uri',
+          'label callback' => 'commerce_invoice_label',
+          'fieldable' => TRUE,
           'entity keys' => array(
               'id' => 'invoice_id',
               'bundle' => 'type',
-              'label' => 'invoice_number', // TODO: Update to use a custom callback.
           ),
           'bundle keys' => array(
               'bundle' => 'type',
@@ -40,9 +52,11 @@ function commerce_invoice_entity_info() {
           'bundles' => array(
               'commerce_invoice' => array(
                   'label' => t('Invoice', array(), array('context' => 'a drupal commerce invoice')),
+                  'admin' => array(
+                    'path' => 'admin/commerce/config/invoice',
+                  ),
               ),
           ),
-          'load hook' => 'commerce_invoice_load',
           'view modes' => array(
               'administrator' => array(
                   'label' => t('Administrator'),
@@ -70,6 +84,13 @@ function commerce_invoice_entity_info() {
   );
 
   return $return;
+}
+
+/**
+ * Entity label callback: returns the label for an individual invoice.
+ */
+function commerce_invoice_label($entity, $entity_type) {
+  return t('Invoice @number', array('@number' => $entity->invoice_number));
 }
 
 /**
@@ -196,7 +217,25 @@ function commerce_invoice_delete_multiple($invoice_ids) {
  *   The user to check for. Leave it to NULL to check for the current user.
  */
 function commerce_invoice_access($op, $invoice = NULL, $account = NULL) {
-  return commerce_entity_access($op, $invoice, $account, 'commerce_invoice');
+  $status = $invoice ? $invoice->field_commerce_invoice_status[LANGUAGE_NONE][0]['value'] : 0;
+  global $user;
+  if (!in_array('administrator', $user->roles)) {
+    // Paid or cancelled invoices can not be updated.
+    if (($op == 'update') && (($status == COMMERCE_INVOICE_STATUS_PAID_TRANSER) || ($status == COMMERCE_INVOICE_STATUS_PAID_CASH) || ($status == COMMERCE_INVOICE_STATUS_CANCELLED))) {
+      return FALSE;
+    }
+    // Invoices can not be deleted. Otherwise the invoice numbers might not be generated correctly.
+    elseif (($op == 'delete')) {
+      return FALSE;
+    }
+    else {
+      return commerce_entity_access($op, $invoice, $account, 'commerce_invoice');
+    }
+  }
+  // Check default commerce entity access.
+  else {
+    return commerce_entity_access($op, $invoice, $account, 'commerce_invoice');
+  }
 }
 
 /**
@@ -261,3 +300,50 @@ function commerce_invoice_views_api() {
   );
 }
 
+/**
+ * Entity uri callback: gives modules a chance to specify a path for an invoice.
+ */
+function commerce_invoice_uri($invoice) {
+  // Allow modules to specify a path, returning the first one found.
+  foreach (module_implements('commerce_invoice_uri') as $module) {
+    $uri = module_invoke($module, 'commerce_invoice_uri', $invoice);
+
+    // If the implementation returned data, use that now.
+    if (!empty($uri)) {
+      return $uri;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Implements hook_commerce_order_state_info().
+ * @return string
+ */
+function commerce_invoice_commerce_order_state_info() {
+  $order_states['invoiced'] = array(
+      'name' => 'invoiced',
+      'title' => t('Invoiced'),
+      'description' => t('Orders in this state have been invoiced.'),
+      'weight' => 20,
+      'default_status' => 'invoiced',
+  );
+  return $order_states;
+}
+
+/**
+ * Implements hook_commerce_order_status_info()
+ * @return type
+ */
+//Add the status 'invoiced' to the order statuses.
+function commerce_invoice_commerce_order_status_info() {
+  $order_statuses['invoiced'] = array(
+      'name' => 'invoiced',
+      'title' => t('Invoiced'),
+      'state' => 'invoiced',
+      'cart' => FALSE,
+      'status' => TRUE,
+  );
+  return $order_statuses;
+}

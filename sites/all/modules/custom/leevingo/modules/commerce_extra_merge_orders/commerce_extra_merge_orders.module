@@ -50,34 +50,20 @@ function commerce_extra_merge_orders_commerce_order_status_info() {
       'cart' => FALSE,
       'status' => TRUE,
   );
-  $order_statuses['merged-processing'] = array(
-      'name' => 'merged-processing',
-      'title' => t('Merged - Processing'),
-      'state' => 'merged',
-      'cart' => FALSE,
-      'status' => TRUE,
-  );
-  $order_statuses['merged-completed'] = array(
-      'name' => 'merged-completed',
-      'title' => t('Merged - Completed'),
-      'state' => 'merged',
-      'cart' => FALSE,
-      'status' => TRUE,
-  );
   return $order_statuses;
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook commerce_entity_access().
  */
-function commerce_extra_merge_orders_form_alter(&$form, &$form_state, $form_id) {
-  // Disable form elements for merged orders.
-  if ($form_id == 'commerce_order_ui_order_form') {
-    if ($form['#entity']->status == 'merged') {
-      foreach (element_children($form) as $element) {
-        $form[$element]['#disabled'] = TRUE;
+function commerce_extra_merge_orders_commerce_entity_access($op, $entity, $account, $entity_type) {
+  if ($entity_type = 'commerce_order') {
+    // Disable editing or deleting merged orders.
+    global $user;
+    if (!in_array('administrator', $user->roles)) {
+      if(isset($entity->status) && (($op == 'update' || $op == 'delete') && ($entity->status == 'merged'))) {
+        return FALSE;
       }
-      drupal_set_message(t("This order has been merged into another order and can't be changed."), 'warning');
     }
   }
 }
@@ -95,7 +81,7 @@ function commerce_extra_merge_orders_merge_orders(&$entity, $context = array()) 
     $customer_info = commerce_extra_merge_orders_get_customer_information($orders);
     $new_uid = $customer_info['uid'];
     //create the new order.
-    $new_order = commerce_order_new(intval($new_uid), $status = 'merged-processing', $type = 'commerce_order');
+    $new_order = commerce_order_new(intval($new_uid), $status = 'processing', $type = 'commerce_order');
     //create new order number.
     $new_order_number = commerce_extra_merge_orders_create_new_order_number($orders);
     $new_order->order_number = $new_order_number;
@@ -215,11 +201,8 @@ function commerce_extra_merge_orders_validate($orders = array()) {
     $order_id = $value->order_id;
     $order = commerce_order_load($order_id);
     $owners[] = $order->uid;
-    if ($order->status == 'merged'){
-      return $error = t('These orders have already been merged!');
-    }
-    elseif ($order->status == 'completed'){
-      return $error = t('These orders have already been completed!');
+    if ($order->status != 'completed'){
+      return $error = t('You can not merge orders that are not completed');
     }
   }
   if (array_unique($owners) == $owners) {
