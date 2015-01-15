@@ -153,6 +153,7 @@ function mdmc_product_disable (&$entity, $context = array()) {
 function mdmc_add_product_validate(&$form, &$form_state) {
   if ($form['#entity_type'] == 'commerce_product') {
     if($form['#bundle'] == 'product') {
+      dsm($form_state);
       //Check if values are empty. Get names for taxonomy terms. Create trimmed values and strings.
       if (!empty($form_state['values']['field_product_supplier']['und'][0]['tid'])) {
         $supplier_tid = $form_state['values']['field_product_supplier']['und'][0]['tid'];
@@ -196,8 +197,24 @@ function mdmc_add_product_validate(&$form, &$form_state) {
         $variation_trimmed_string = '';
       }
 
+      if (!empty($form_state['values']['field_product_unit_number']['und'][0]['value'])) {
+        $unit_number = $form_state['values']['field_product_unit_number']['und'][0]['value'] . '-';
+      } else {
+        $unit_number = ' -';
+      }
+
+      if (!empty($form_state['values']['field_product_unit']['und'][0]['tid'])) {
+        $unit_tid = $form_state['values']['field_product_unit']['und'][0]['tid'];
+        $unit = taxonomy_term_load($unit_tid)->name;
+        $unit_trimmed = mdmc_trim_string($unit, 4);
+        $unit_trimmed_string = $unit_trimmed;
+      } else {
+        $unit = '';
+        $unit_trimmed_string = '';
+      }
+
       //Build sku and title values and strings.
-      $sku = $supplier_trimmed_string . $type_trimmed_string . $sort_trimmed_string . $variation_trimmed_string . '1';
+      $sku = $supplier_trimmed_string . $type_trimmed_string . $sort_trimmed_string . $variation_trimmed_string . $unit_number . $unit_trimmed_string;
       $title = (!empty($sort) ? $sort . ' ' : '') . (!empty($variation) ? $variation . ' ' : '');
 
     //Set the sku and title value to the form-state
