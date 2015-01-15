@@ -153,7 +153,7 @@ function mdmc_product_disable (&$entity, $context = array()) {
 function mdmc_add_product_validate(&$form, &$form_state) {
   if ($form['#entity_type'] == 'commerce_product') {
     if($form['#bundle'] == 'product') {
-      dsm($form_state);
+      
       //Check if values are empty. Get names for taxonomy terms. Create trimmed values and strings.
       if (!empty($form_state['values']['field_product_supplier']['und'][0]['tid'])) {
         $supplier_tid = $form_state['values']['field_product_supplier']['und'][0]['tid'];
