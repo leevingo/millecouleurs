@@ -191,18 +191,29 @@
   </head>
   <body>
     <div class="print-wrapper">
+
       <?php if ($print['node']->title != 'Processing orders') : ?>
+
         <div class="print-header">
           <div class="print-logo-wrapper"><?php print $print['logo']; ?></div>
           <div class="print-site_name"><?php print $site_name; ?></div>
         </div>
-      <div class="print-title"><?php print t('Invoice'); ?></div>
+        <div class="print-title">
+          <?php print t('Invoice'); ?>
+        </div>
+      <?php else : ?>
+        <div class="print-field-list-header">
+          <?php print t('Field list printed on ') . format_date(time(), 'custom', 'd-m-Y H:i'); ?>
+
+        </div>
       <?php endif; ?>
+
       <div class="print-content"><?php print $print['content']; ?></div>
       <div class="print-footer"><?php print $print['footer_message']; ?></div>
       <div class="print-source_url"><?php print $print['source_url']; ?></div>
       <div class="print-links"><?php print $print['pfp_links']; ?></div>
       <?php print $print['footer_scripts']; ?>
+
     </div>
   </body>
 </html>

@@ -744,7 +744,7 @@ ul.action-links a {
 /* 8.0.1 Login form */
 .not-logged-in #main {
   display: block;
-  width: 400px;
+  //width: 400px;
   margin: 0 auto;
 }
 .not-logged-in form {
@@ -1058,4 +1058,12 @@ div[id*='customer-profile-shipping-field-requested-shipping-date-add-more-wrappe
 .page-user-orders .field-name-invoice-conditions {
   display: none;
 }
+
+/*Basic page*/
+
+.node-type-page #main {
+  width: 100%;
+}
 /*-------------------------------------------------------------------------------------------------*/
+
+

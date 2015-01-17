@@ -99,7 +99,6 @@ function mdmc_action_info() {
  */
 function mdmc_set_order_processing(&$entity, $context = array()) {
   foreach ($entity as $order_id => $order) {
-    dsm($order);
     if (($order->status != 'invoiced') && ($order->status != 'merged')) {
       commerce_order_status_update($order, 'processing');
     }
@@ -153,7 +152,7 @@ function mdmc_product_disable (&$entity, $context = array()) {
 function mdmc_add_product_validate(&$form, &$form_state) {
   if ($form['#entity_type'] == 'commerce_product') {
     if($form['#bundle'] == 'product') {
-      
+
       //Check if values are empty. Get names for taxonomy terms. Create trimmed values and strings.
       if (!empty($form_state['values']['field_product_supplier']['und'][0]['tid'])) {
         $supplier_tid = $form_state['values']['field_product_supplier']['und'][0]['tid'];
@@ -190,7 +189,13 @@ function mdmc_add_product_validate(&$form, &$form_state) {
         $variation_array = explode(" ", $variation);
         $variation_trimmed_string = '';
         foreach ($variation_array as $string) {
-          $variation_trimmed_string .= mdmc_trim_string($string, 4) . '-';
+          if (is_numeric($string)) {
+            $variation_trimmed_string .= $string . '-';
+          }
+          else {
+            $string = mdmc_trim_string($string, 4);
+            $variation_trimmed_string .= !empty($string) ? $string . '-' : '';
+          }
         }
       } else {
         $variation = '';
