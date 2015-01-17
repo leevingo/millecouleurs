@@ -73,8 +73,9 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
     // TODO: there is probably a better way to do this
     // Invoice supplier.
     $supplier_tid = $invoice->supplier_tid;
+    $supplier_prefix = strtoupper(mb_substr(taxonomy_term_load($supplier_tid)->name, 0, 3));
     // Invoice generation method
-    $method = variable_get('commerce_invoice_number_method', COMMERCE_INVOICE_METHOD_YEAR);
+    $method = variable_get('commerce_invoice_number_method', COMMERCE_INVOICE_METHOD_SUPPLIER);
     // Get last invoice created
     if ($method == COMMERCE_INVOICE_METHOD_SUPPLIER) {
       $result = db_select('commerce_invoice', 'i')
@@ -86,7 +87,8 @@ class CommerceInvoiceEntityController extends DrupalCommerceEntityController {
       if ($record = $result->fetchAssoc()) {
         $last_number_for_supplier = $record['invoice_number'];
         $new_number_for_supplier = $last_number_for_supplier + 1;
-        $return = str_replace('[invoice_number]', $new_number_for_supplier, $method);
+        $new_invoice_number = $supplier_prefix  . date('y') . sprintf("%03s", $new_number_for_supplier);
+        $return = str_replace('[invoice_number]', $new_invoice_number, $method);
         return $return;
       }
       else {
