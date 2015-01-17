@@ -850,12 +850,15 @@ caption {
 /* 8.3 cart block */
 #block-commerce-cart-cart {
   margin-top: 60px;
+  width: 220px;
 }
 #block-commerce-cart-cart h2 {
   margin: 5px 0;
 }
 #block-commerce-cart-cart td {
   font-size: 10px;
+  padding: 4px 3px;
+  line-height: 1;
 }
 /* 8.4 product form */
 #commerce-product-ui-product-form {
